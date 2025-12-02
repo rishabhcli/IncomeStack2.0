@@ -2,26 +2,8 @@ import { GoogleGenAI, LiveServerMessage, Modality, Type } from "@google/genai";
 import { JobAnalysis } from "../types";
 
 // Initialize Gemini Client
-let ai: GoogleGenAI | null = null;
-
-function resolveApiKey() {
-  const viteKey = typeof import.meta !== 'undefined' ? import.meta.env?.VITE_GEMINI_API_KEY : undefined;
-  const nodeKey = typeof process !== 'undefined' ? (process.env?.VITE_GEMINI_API_KEY || process.env?.GEMINI_API_KEY) : undefined;
-  return (viteKey || nodeKey || '').trim();
-}
-
-function getClient() {
-  if (ai) return ai;
-
-  const apiKey = resolveApiKey();
-
-  if (!apiKey) {
-    throw new Error('Gemini API key missing. Set VITE_GEMINI_API_KEY in your .env.local file.');
-  }
-
-  ai = new GoogleGenAI({ apiKey });
-  return ai;
-}
+const apiKey = process.env.API_KEY || '';
+const ai = new GoogleGenAI({ apiKey });
 
 // --- HELPER FUNCTIONS FOR LIVE API ---
 
@@ -117,9 +99,7 @@ export class LiveSession {
     scriptProcessor.connect(this.inputContext.destination);
 
     // 3. Connect to Gemini Live
-    const client = getClient();
-
-    this.sessionPromise = client.live.connect({
+    this.sessionPromise = ai.live.connect({
       model: 'gemini-2.5-flash-native-audio-preview-09-2025',
       callbacks: {
         onopen: () => {
@@ -202,7 +182,7 @@ export class LiveSession {
  */
 export const getMarketInsights = async (query: string) => {
   try {
-    const response = await getClient().models.generateContent({
+    const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `Provide a concise market analysis for: ${query}. Focus on trends and actionable data.`,
       config: {
@@ -227,7 +207,7 @@ export const getMarketInsights = async (query: string) => {
  */
 export const getMastermindAdvice = async (history: {role: string, content: string}[], newMessage: string) => {
   try {
-    const chat = getClient().chats.create({
+    const chat = ai.chats.create({
       model: "gemini-3-pro-preview",
       config: {
         thinkingConfig: { thinkingBudget: 32768 },
@@ -252,7 +232,7 @@ export const getMastermindAdvice = async (history: {role: string, content: strin
  */
 export const analyzeJobMatch = async (jobTitle: string, jobDesc: string, userTags: string[]) => {
     try {
-        const response = await getClient().models.generateContent({
+        const response = await ai.models.generateContent({
             model: "gemini-3-pro-preview",
             contents: `Analyze this job opportunity: "${jobTitle} - ${jobDesc}". My skills are: ${userTags.join(', ')}. 
             Return a JSON object with:
@@ -288,7 +268,7 @@ export const analyzeJobMatch = async (jobTitle: string, jobDesc: string, userTag
  */
 export const generateVisionBoardImage = async (prompt: string, size: "1K" | "2K" | "4K") => {
   try {
-    const response = await getClient().models.generateContent({
+    const response = await ai.models.generateContent({
       model: "gemini-3-pro-image-preview",
       contents: {
         parts: [{ text: prompt }]
