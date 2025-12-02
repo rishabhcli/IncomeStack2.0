@@ -1,0 +1,8 @@
+{
+  "name": "IncomeStack 2.0 - Wealth OS",
+  "description": "A futuristic Wealth-Generation Operating System featuring an offline-first architecture philosophy, 'enchanted' liquid glass UI, and deep Gemini AI integration for job matching, market analysis, and mastermind coaching.",
+  "requestFramePermissions": [
+    "microphone",
+    "camera"
+  ]
+}
