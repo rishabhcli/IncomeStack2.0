@@ -9,26 +9,34 @@ import JobCard from './components/JobCard';
 import { Job, ViewState, ChatMessage, WealthMetrics, JobAnalysis } from './types';
 import { GLASS_PANEL, GLASS_INPUT, ACTION_BUTTON, ACTION_BUTTON_SECONDARY, NEON_TEXT, MOCK_JOBS, MOCK_METRICS } from './constants';
 import * as geminiService from './services/geminiService';
+import usePersistentState from './hooks/usePersistentState';
 
 const App = () => {
-  const [currentView, setCurrentView] = useState<ViewState>(ViewState.DASHBOARD);
+  const [currentView, setCurrentView] = usePersistentState<ViewState>('view', ViewState.DASHBOARD);
   const [metrics, setMetrics] = useState<WealthMetrics>(MOCK_METRICS);
   
   // Chat State
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [chatHistory, setChatHistory] = usePersistentState<ChatMessage[]>(
+    'chatHistory',
+    [],
+    (value) => {
+      if (!Array.isArray(value)) return [];
+      return value.map((entry) => ({ ...entry, timestamp: new Date(entry.timestamp) })) as ChatMessage[];
+    }
+  );
   const [chatInput, setChatInput] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const chatScrollRef = useRef<HTMLDivElement>(null);
   
   // Search Grounding State
-  const [marketQuery, setMarketQuery] = useState('');
+  const [marketQuery, setMarketQuery] = usePersistentState('marketQuery', '');
   const [marketData, setMarketData] = useState<{text: string, grounding: any[]} | null>(null);
   const [isSearching, setIsSearching] = useState(false);
 
   // Vision Board State
-  const [visionPrompt, setVisionPrompt] = useState('');
-  const [visionSize, setVisionSize] = useState<"1K"|"2K"|"4K">("1K");
-  const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [visionPrompt, setVisionPrompt] = usePersistentState('visionPrompt', '');
+  const [visionSize, setVisionSize] = usePersistentState<"1K"|"2K"|"4K">('visionSize', "1K");
+  const [generatedImage, setGeneratedImage] = usePersistentState<string | null>('visionImage', null);
   const [isGeneratingImg, setIsGeneratingImg] = useState(false);
 
   // Job Analysis State
@@ -66,42 +74,66 @@ const App = () => {
       content: chatInput,
       timestamp: new Date()
     };
-    
-    setChatHistory(prev => [...prev, userMsg]);
+
+    const updatedHistory = [...chatHistory, userMsg];
+    setChatHistory(updatedHistory);
     setChatInput('');
     setIsThinking(true);
 
-    const botResponseText = await geminiService.getMastermindAdvice(
-      chatHistory.map(m => ({ role: m.role, content: m.content })),
-      userMsg.content
-    );
+    try {
+      const botResponseText = await geminiService.getMastermindAdvice(
+        updatedHistory.map(m => ({ role: m.role, content: m.content })),
+        userMsg.content
+      );
 
-    const botMsg: ChatMessage = {
-      id: (Date.now() + 1).toString(),
-      role: 'model',
-      content: botResponseText,
-      timestamp: new Date()
-    };
+      const botMsg: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'model',
+        content: botResponseText,
+        timestamp: new Date()
+      };
 
-    setChatHistory(prev => [...prev, botMsg]);
-    setIsThinking(false);
+      setChatHistory(prev => [...prev, botMsg]);
+    } catch (error) {
+      console.error('Mastermind chat error', error);
+      setChatHistory(prev => [...prev, {
+        id: (Date.now() + 1).toString(),
+        role: 'model',
+        content: 'I ran into an issue retrieving advice. Please try again shortly.',
+        timestamp: new Date()
+      }]);
+    } finally {
+      setIsThinking(false);
+    }
   };
 
   const handleMarketSearch = async (e?: React.FormEvent) => {
     e?.preventDefault();
     if (!marketQuery) return;
     setIsSearching(true);
-    const result = await geminiService.getMarketInsights(marketQuery);
-    setMarketData(result);
-    setIsSearching(false);
+    try {
+      const result = await geminiService.getMarketInsights(marketQuery);
+      setMarketData(result);
+    } catch (error) {
+      console.error('Market search failed', error);
+      setMarketData({ text: 'Unable to fetch market data at this moment.', grounding: [] });
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   const handleGenerateImage = async () => {
     if (!visionPrompt) return;
     setIsGeneratingImg(true);
-    const imgData = await geminiService.generateVisionBoardImage(visionPrompt, visionSize);
-    if (imgData) setGeneratedImage(imgData);
-    setIsGeneratingImg(false);
+    try {
+      const imgData = await geminiService.generateVisionBoardImage(visionPrompt, visionSize);
+      if (imgData) setGeneratedImage(imgData);
+    } catch (error) {
+      console.error('Vision board generation failed', error);
+      setGeneratedImage(null);
+    } finally {
+      setIsGeneratingImg(false);
+    }
   };
 
   const handleAnalyzeJob = async (job: Job) => {
@@ -111,10 +143,20 @@ const App = () => {
       setCopySuccess(false);
       setIsAnalyzingJob(true);
 
-      const analysis = await geminiService.analyzeJobMatch(job.title, job.description, ['React', 'TypeScript', 'AI', 'Design']);
-      
-      setJobAnalysis(analysis);
-      setIsAnalyzingJob(false);
+      try {
+        const analysis = await geminiService.analyzeJobMatch(job.title, job.description, ['React', 'TypeScript', 'AI', 'Design']);
+        setJobAnalysis(analysis);
+      } catch (error) {
+        console.error('Job analysis failed', error);
+        setJobAnalysis({
+          matchAnalysis: 'Unable to analyze this role right now. Please try again soon.',
+          pros: [],
+          cons: [],
+          growthPotential: 0
+        });
+      } finally {
+        setIsAnalyzingJob(false);
+      }
   };
 
   const handleCopyAnalysis = () => {
@@ -145,7 +187,12 @@ const App = () => {
         const session = new geminiService.LiveSession();
         session.onStatusChange = (s) => setLiveStatus(s);
         liveSessionRef.current = session;
-        await session.connect();
+        try {
+          await session.connect();
+        } catch (error) {
+          console.error('Unable to start live session', error);
+          setLiveStatus('disconnected');
+        }
     } else {
         liveSessionRef.current?.disconnect();
     }
