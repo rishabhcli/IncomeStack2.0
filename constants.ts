@@ -1,10 +1,16 @@
 import { Job, WealthMetrics } from './types';
 
 // "Enchanted" UI Token Helpers
-export const GLASS_PANEL = "bg-slate-900/40 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)] rounded-2xl";
-export const GLASS_INPUT = "bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder-white/30 focus:outline-none focus:border-emerald-400/50 focus:ring-1 focus:ring-emerald-400/20 transition-all";
-export const ACTION_BUTTON = "bg-emerald-500 hover:bg-emerald-400 text-white font-semibold py-2 px-4 rounded-xl shadow-[0_0_20px_rgba(16,185,129,0.3)] transition-all active:scale-95";
-export const NEON_TEXT = "text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 to-cyan-300 drop-shadow-[0_0_10px_rgba(52,211,153,0.5)]";
+// Using a more sophisticated glass effect with distinct borders and shadows for depth
+export const GLASS_PANEL = "bg-slate-900/70 backdrop-blur-2xl border border-white/10 shadow-xl rounded-2xl ring-1 ring-white/5";
+export const GLASS_PANEL_HOVER = "hover:bg-slate-800/70 hover:border-white/20 hover:shadow-2xl hover:scale-[1.01] transition-all duration-300";
+
+export const GLASS_INPUT = "bg-slate-950/60 border border-white/10 rounded-xl px-4 py-3.5 text-white placeholder-slate-400 focus:outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20 transition-all w-full font-medium shadow-inner";
+
+export const ACTION_BUTTON = "bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-semibold py-3 px-6 rounded-xl shadow-[0_0_20px_-5px_rgba(16,185,129,0.4)] transition-all active:scale-95 flex items-center justify-center gap-2 border border-emerald-500/20";
+export const ACTION_BUTTON_SECONDARY = "bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 font-medium py-3 px-6 rounded-xl border border-white/5 hover:border-white/10 transition-all active:scale-95 flex items-center justify-center gap-2";
+
+export const NEON_TEXT = "text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-cyan-300 drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]";
 
 export const MOCK_METRICS: WealthMetrics = {
   balance: 14250.75,
@@ -21,7 +27,7 @@ export const MOCK_JOBS: Job[] = [
     salary: '$180k - $220k',
     matchScore: 98,
     tags: ['React Native', 'Rust', 'DeFi'],
-    description: 'Building the next generation of decentralized finance interfaces.',
+    description: 'Building the next generation of decentralized finance interfaces. Looking for engineers who understand liquid markets.',
     isRemote: true
   },
   {
@@ -31,7 +37,7 @@ export const MOCK_JOBS: Job[] = [
     salary: '$200k - $250k',
     matchScore: 92,
     tags: ['Python', 'LLM', 'RAG'],
-    description: 'Design enterprise-scale AI integration strategies.',
+    description: 'Design enterprise-scale AI integration strategies. Requires deep knowledge of vector databases.',
     isRemote: true
   },
   {
@@ -41,7 +47,17 @@ export const MOCK_JOBS: Job[] = [
     salary: '$160k - $190k',
     matchScore: 85,
     tags: ['Figma', 'Design Systems', 'Spatial'],
-    description: 'Crafting the visual language for spatial computing devices.',
+    description: 'Crafting the visual language for spatial computing devices. Experience with 3D interfaces preferred.',
     isRemote: false
+  },
+  {
+    id: '4',
+    title: 'Growth Marketing Lead',
+    company: 'Orbit Financial',
+    salary: '$140k - $170k',
+    matchScore: 78,
+    tags: ['Analytics', 'SEO', 'Brand'],
+    description: 'Lead the user acquisition strategy for a new fintech unicorn.',
+    isRemote: true
   }
 ];

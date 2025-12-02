@@ -9,6 +9,13 @@ export interface Job {
   isRemote: boolean;
 }
 
+export interface JobAnalysis {
+  matchAnalysis: string;
+  pros: string[];
+  cons: string[];
+  growthPotential: number; // 0-100
+}
+
 export interface ChatMessage {
   id: string;
   role: 'user' | 'model' | 'system';
