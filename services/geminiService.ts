@@ -6,8 +6,9 @@ const apiKey = process.env.API_KEY || '';
 const ai = new GoogleGenAI({ apiKey });
 
 // --- HELPER FUNCTIONS FOR LIVE API ---
+// Exported for testing purposes
 
-function encode(bytes: Uint8Array) {
+export function encode(bytes: Uint8Array) {
   let binary = '';
   const len = bytes.byteLength;
   for (let i = 0; i < len; i++) {
@@ -16,7 +17,7 @@ function encode(bytes: Uint8Array) {
   return btoa(binary);
 }
 
-function decode(base64: string) {
+export function decode(base64: string) {
   const binaryString = atob(base64);
   const len = binaryString.length;
   const bytes = new Uint8Array(len);
@@ -26,7 +27,7 @@ function decode(base64: string) {
   return bytes;
 }
 
-async function decodeAudioData(
+export async function decodeAudioData(
   data: Uint8Array,
   ctx: AudioContext,
   sampleRate: number,
@@ -45,7 +46,7 @@ async function decodeAudioData(
   return buffer;
 }
 
-function createBlob(data: Float32Array): { data: string, mimeType: string } {
+export function createBlob(data: Float32Array): { data: string, mimeType: string } {
   const l = data.length;
   const int16 = new Int16Array(l);
   for (let i = 0; i < l; i++) {
